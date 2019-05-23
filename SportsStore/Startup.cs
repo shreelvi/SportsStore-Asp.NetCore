@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SportsStore.Models;
@@ -15,6 +16,7 @@ namespace SportsStore
 {
     public class Startup
     {
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -32,8 +34,13 @@ namespace SportsStore
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+            //Sets up ef core database
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlServer(
+                    Configuration.GetConnectionString("DefaultConnection")));
+
             services.AddTransient<IProductRepository,
-                FakeProductRepository>(); //Add transient method specifies that a new FakeProdRepo object be created each time the interface is needed
+                EFProductRepository>(); //Add transient method specifies that a new FakeProdRepo object be created each time the interface is needed
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
@@ -61,6 +68,7 @@ namespace SportsStore
                     name: "default",
                     template: "{controller=Product}/{action=List}/{id?}");
             });
+            SeedData.EnsurePopulated(app);
         }
     }
 }
